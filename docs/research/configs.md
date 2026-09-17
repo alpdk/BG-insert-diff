@@ -41,7 +41,7 @@ From `configs/shared.yaml`. Same meaning on every method.
 | `global_batch_size`       | `64`               | Same optimizer-step size (examples × GPUs, `grad_accum=1`).                                         |
 | `eval_global_batch_size`  | `32`               | Smaller likelihood / generate batch (memory). EditFlow uses `val_max_examples: 256` as a val *cap*. |
 | `num_workers`             | `4`                | Dataloader workers.                                                                                 |
-| `seed`                    | `42`               | Train, val split, and sampling.                                                                     |
+| `seed`                    | `42`               | Makes training, the val split, and generation repeatable.                                           |
 | `precision`               | `bf16`             | Train / val autocast. PUMA hardcodes `torch.bfloat16`.                                              |
 | `grad_clip`               | `1.0`              | Global grad-norm clip.                                                                              |
 | `lr`                      | `3.0e-4`           | Peak AdamW LR.                                                                                      |
@@ -59,7 +59,7 @@ From `configs/shared.yaml`. Same meaning on every method.
 | `ckpt_every`              | `2000`             | Periodic checkpoints.                                                                               |
 | `log_every`               | `100`              | `train/` log interval.                                                                              |
 | `early_stopping_patience` | `9999`             | Off: every method runs the full `max_steps` budget.                                                 |
-| `resume_from_ckpt`        | `false`            | Fresh comparison runs.                                                                              |
+| `resume_from_ckpt`        | `false`            | Do not load a checkpoint. Train from scratch.                                                       |
 | `task_num_samples`        | `32`               | Examples scored for `test/pass@1_k*`.                                                               |
 | `sampling_steps`          | `128`              | Denoising / edit steps at test. PUMA uses stage `k`, not this count.                                |
 | `pass_at_1_k`             | `[1, 2, 4, 8]`     | Tokens written **per sampling step**. Same four `test/pass@1_k`* keys.                              |

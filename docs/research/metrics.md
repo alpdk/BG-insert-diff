@@ -47,10 +47,12 @@ Lightning may suffix `*_step` / `*_epoch`. W&B `System/` is automatic.
 | `perf/train_tokens_per_s` | perf     | Tokens × world size / step wall time                         |
 | `perf/val_step_s`         | perf     | Wall seconds for one likelihood val batch (see below)        |
 | `perf/test_s`             | perf     | Wall seconds for one full test generate+score pass           |
-| `healthy/grad_norm`       | healthy  | Global L2 grad norm before clip                              |
+| `healthy/grad_norm`       | healthy  | Global L2 grad norm. Clip timing differs by trainer          |
 
 
 `k` is tokens written / unmasked / emitted **per sampling step**, not the number of denoising steps. All four models log the same four keys. There is no `test/pass@1` without a `k` suffix, and no `test/pass@1_match`.
+
+`healthy/grad_norm` is not always pre-clip. **MDLM** logs in `on_before_optimizer_step` (before clip). **EditFlow** logs the return value of `clip_grad_norm_` (unclipped). **PUMA** clips, then reads `p.grad` (clipped). **FlexMDM** inherits the MDLM before-clip log and logs again after `optimizer_step` (clipped). Do not compare PUMA (or FlexMDM’s later log) to MDLM/EditFlow as the same quantity.
 
 Checkpoint `best` still tracks **min** `val/loss`. Task checkpoint `best-task` tracks **max** `test/pass@1_k1` unless a run overrides `eval.task_checkpoint_monitor`. Quote `"test/pass@1_k1"` (and the other `k` keys) in YAML.
 
@@ -142,6 +144,6 @@ Do not rank quality by this key. Use it to compare val-pass cost at a given batc
 2. **Task (Python-exec, train domain).** `test/pass@1_k1` … `test/pass@1_k8`. On TinyGSM this is held-out code exec. Compare methods at the same `k`.
 3. **GSM8K transfer (TinyGSM runs).** `test/gsm8k/pass@1_k1` … `test/gsm8k/pass@1_k8`.
 4. **Speed.** `perf/train_tokens_per_s` (train), `perf/val_step_s` (likelihood val batch), `perf/test_s` (generate+score). Never a quality ranking.
-5. **Health.** `healthy/grad_norm`.
+5. **Health.** `healthy/grad_norm`. Exploding grads show up on MDLM/EditFlow (pre-clip). PUMA’s chart is post-clip, so it sits at or below `max_grad_norm`.
 6. **Internals.** `train/lr`. Edit Flows: `stats/u_tot` collapsing to 0 is a dead sampler. PUMA: `stats/current_k` is the progressive unmask stage.
 
